@@ -80,6 +80,8 @@
     <Compile Include="SelectEntityDialog.xaml.cs">
       <DependentUpon>SelectEntityDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModel\InstanceConverter.cs" />
+    <Compile Include="ViewModel\JTokenToControlConverter.cs" />
     <Compile Include="ViewModel\JTokenToStringConverter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\SelectEntityViewModel.cs" />

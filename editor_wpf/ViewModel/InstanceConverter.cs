@@ -10,12 +10,18 @@ using Newtonsoft.Json.Linq;
 
 namespace editor_wpf.ViewModel
 {
-	class JTokenToStringConverter : IValueConverter
+	class InstanceConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType,
 			object parameter, CultureInfo culture)
 		{
-			return value as JToken;
+			MainViewModel.Instance instance = value as MainViewModel.Instance;
+
+			if (instance != null)
+			{
+				return instance.data;
+			}
+			else return null;
 		}
 
 		public object ConvertBack(object value, Type targetType,
