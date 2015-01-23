@@ -18,21 +18,17 @@ namespace editor_wpf.ViewModel
 		public object Convert(object value, Type targetType,
 			object parameter, CultureInfo culture)
 		{
-			JToken token = value as JToken;
+			JProperty prop = value as JProperty;
 
-			if (token != null)
-			{				
+			if (prop != null)
+			{
+				JToken token = prop.Value;
 				switch (token.Type)
 				{
 					case JTokenType.Float: 
-						double fVal = (float)token; 
-						return new Widget.FloatWidget { 
-							Minimum = fVal - fVal * 0.5f, 
-							Maximum = fVal + fVal * 0.5f, 
-							Value = fVal, 
-							Width = 150 };
+						return new Widget.FloatWidget(prop);
 
-					default: return new TextBox { Width = 150, Text = token.ToString() };
+					default: return new Widget.TextWidget(prop);
 				}
 			} else return null;			
 		}
@@ -40,7 +36,8 @@ namespace editor_wpf.ViewModel
 		public object ConvertBack(object value, Type targetType,
 			object parameter, CultureInfo culture)
 		{
-			return new JValue(value);
+			Widget.IWidget w = value as Widget.IWidget;
+			return w != null ? new JValue(w.Value) : null;
 		}
 	}
 }

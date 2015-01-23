@@ -116,47 +116,10 @@ namespace editor_wpf.ViewModel
 				return true;
 			}
 
-
-			class PropTypes : Dictionary<string, JTokenType>
-			{ }
-
-			class EntityProps : Dictionary<string, PropTypes>
-			{ }
-
 			public void Execute(object parameter)
 			{
-				EntityProps entityProps = new EntityProps();
-
-				foreach (Entity entity in _entities)
-				{
-					PropTypes props = new PropTypes();
-					foreach (JProperty prop in entity.props)
-					{
-						props.Add(prop.Name, prop.Value.Type);
-					}
-
-					entityProps.Add(entity.name, props);
-				}
-
 				Entity selected = parameter as Entity;
-				PropTypes types = entityProps[selected.name];
-
-				if (selected != null)
-				{
-					JObject obj = new JObject();
-					foreach (JProperty prop in selected.props)
-					{
-						JValue val;
-						switch(types[prop.Name])
-						{
-							case JTokenType.Float: val = new JValue((float)prop.Value); break;
-							case JTokenType.Integer: val = new JValue((int)prop.Value); break;
-							default: val = new JValue((String)prop.Value); break;
-						}
-						obj.Add(prop.Name, val);
-					}
-					_serv.SetInstance(selected.provider, selected.name, obj);
-				}				
+				_serv.SetInstance(selected.provider, selected.name, new JObject(selected.props));
 			}
 		}
 
