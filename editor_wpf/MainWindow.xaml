@@ -55,7 +55,7 @@
 							<GridViewColumn Header="Значение" Width="190">
 							<GridViewColumn.CellTemplate>
 								<DataTemplate>
-									<ContentControl Content="{Binding Converter={StaticResource JTokenToControlConverter}, Mode=OneWay}">
+									<ContentControl Content="{Binding Value, Converter={StaticResource JTokenToControlConverter}, Mode=OneWay}">
 										
 									</ContentControl>
 								</DataTemplate>

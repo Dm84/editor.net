@@ -5,6 +5,7 @@
         Title="Добавить объект" Closing="Window_Closing" ResizeMode="NoResize" SizeToContent="WidthAndHeight" Height="577" Width="396">
 	<Window.Resources>
 		<ViewModel:JTokenToStringConverter x:Key="JTokenToStringConverter"/>
+		<ViewModel:JTokenToControlConverter x:Key="JTokenToControlConverter"/>
 	</Window.Resources>
 
 	<Window.DataContext>
@@ -27,8 +28,8 @@
 					<GridViewColumn Header="Значение" Width="190">
 						<GridViewColumn.CellTemplate>
 							<DataTemplate>
-								<TextBox Width="180" HorizontalAlignment="Center" Text="{Binding Value, Converter={StaticResource JTokenToStringConverter}, Mode=TwoWay, NotifyOnSourceUpdated=True, StringFormat=N2}">
-								</TextBox>
+								<ContentControl Content="{Binding Value, Converter={StaticResource JTokenToControlConverter}, Mode=TwoWay, NotifyOnSourceUpdated=True}">
+								</ContentControl>
 							</DataTemplate>
 						</GridViewColumn.CellTemplate>
 					</GridViewColumn>

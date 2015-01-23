@@ -18,18 +18,21 @@ namespace editor_wpf.ViewModel
 		public object Convert(object value, Type targetType,
 			object parameter, CultureInfo culture)
 		{
-			JProperty prop = value as JProperty;
+			JToken token = value as JToken;
 
-			if (prop != null)
-			{
-				JToken val = prop.Value;
-				switch (prop.Value.Type)
+			if (token != null)
+			{				
+				switch (token.Type)
 				{
 					case JTokenType.Float: 
-						float fVal = (float)val; 
-						return new Slider { SelectionStart = fVal - fVal * 0.5f, SelectionEnd = fVal + fVal * 0.5f, Value = fVal, Width = 150 };
+						double fVal = (float)token; 
+						return new Widget.FloatWidget { 
+							Minimum = fVal - fVal * 0.5f, 
+							Maximum = fVal + fVal * 0.5f, 
+							Value = fVal, 
+							Width = 150 };
 
-					default: return new TextBox { Width = 150, Text = val.ToString() };
+					default: return new TextBox { Width = 150, Text = token.ToString() };
 				}
 			} else return null;			
 		}
