@@ -45,26 +45,31 @@
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>
 			</TreeView>
-
-
-
-			<ListView Grid.Row="1" ItemsSource="{Binding SelectedItem, Converter={StaticResource InstanceConverter}, ElementName=treeView, Mode=OneWay}">
-				<ListView.View>
-					<GridView>
-						<GridViewColumn Header="Параметр" Width="190" DisplayMemberBinding="{Binding Path=Name}"/>
+			<Grid Margin="0" Grid.Row="1" ClipToBounds="True" >
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<ListView ItemsSource="{Binding SelectedItem, Converter={StaticResource InstanceConverter}, ElementName=treeView, Mode=OneWay}" Margin="0,0,-424,-21" ClipToBounds="True">
+					<ListView.View>
+						<GridView>
+							<GridViewColumn Header="Параметр" Width="190" DisplayMemberBinding="{Binding Name}"/>
 							<GridViewColumn Header="Значение" Width="190">
-							<GridViewColumn.CellTemplate>
-								<DataTemplate>
-									<ContentControl Content="{Binding Converter={StaticResource JTokenToControlConverter}, Mode=OneWay}">
-										
-									</ContentControl>
-								</DataTemplate>
-									
-							</GridViewColumn.CellTemplate>
-						</GridViewColumn>
-					</GridView>
-				</ListView.View>
-			</ListView>
+								<GridViewColumn.CellTemplate>
+									<DataTemplate>
+										<ContentControl Content="{Binding Converter={StaticResource JTokenToControlConverter}, Mode=OneWay, ValidatesOnNotifyDataErrors=False}"/>
+									</DataTemplate>
+
+								</GridViewColumn.CellTemplate>
+							</GridViewColumn>
+						</GridView>
+					</ListView.View>
+				</ListView>
+				<Button Command="{Binding copyEntity, Mode=OneWay}" CommandParameter="{Binding SelectedItem, ElementName=treeView, Mode=OneWay}" Content="Скопировать" Margin="0" Grid.Row="1" VerticalAlignment="Top" ClipToBounds="True"/>
+			</Grid>
 		</Grid>
 	</Grid>
 </Window>

@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Windows;
+
 
 using GalaSoft.MvvmLight;
 using Newtonsoft.Json.Linq;
@@ -18,12 +20,32 @@ namespace editor_wpf.ViewModel
 {
 	public class MainViewModel : ViewModelBase
 	{
+		public class Property
+		{
+			public delegate void Update(string _entity, string _provider, JObject data);
+
+			Update _update;			
+			JProperty _prop;
+			string _entity, _provider;
+
+			public JProperty prop { get { return _prop; } }
+
+			public Property(Update update, JProperty prop, string entity, string provider)
+			{
+				_update = update;
+				_prop = prop;
+				_entity = entity;
+				_provider = provider;
+
+			}
+		}
+
 		public class Instance
 		{
 			public string entity { get; set; }
 			public string name { get; set;  }
 			public string provider { get; set; }
-			public JToken data { get; set; }
+			public IEnumerable<Property> data { get; set; }
 		}
 
 		public class Entity
@@ -33,7 +55,7 @@ namespace editor_wpf.ViewModel
 			public string provider { get; set; }
 
 			public IEnumerable<JProperty> props { get; set; }
-			public ObservableCollection<Instance> instances { get; set; }
+			public ICollection<Instance> instances { get; set; }
 		}
 
 		delegate void TokenDelegate(JToken token);
@@ -43,13 +65,23 @@ namespace editor_wpf.ViewModel
 
 		IDictionary<string, Entity> _entityIndex = new Dictionary<string, Entity>();
 		Service _serv;
+				
 
 		public void InstanceFeedback(Service.Instance instance)
 		{
 			App.Current.Dispatcher.Invoke(new Service.AddInstance((Service.Instance src) =>
 			{
 				Entity entity = _entityIndex[src.entity];
-				entity.instances.Add(new Instance { entity = src.entity, provider = src.provider, name = src.name, data = src.data });
+
+				Collection<Property> props = new Collection<Property>();
+				foreach (JProperty prop in src.data)
+				{
+					props.Add(new Property((string entityName, string provider, JObject data) => {
+						_serv.SetInstance(provider, entityName, data);
+					}, prop, instance.name, instance.provider));
+				}
+
+				entity.instances.Add(new Instance { entity = src.entity, provider = src.provider, name = src.name, data = props });
 			}), instance);
 		}
 
@@ -98,6 +130,14 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
+		public ICommand copyEntity
+		{
+			get
+			{
+				return new CopyCommand();
+			}
+		}
+
 
 		class AddEntityCommand : ICommand
 		{
@@ -120,6 +160,26 @@ namespace editor_wpf.ViewModel
 			{
 				Entity selected = parameter as Entity;
 				_serv.SetInstance(selected.provider, selected.name, new JObject(selected.props));
+			}
+		}
+
+		class CopyCommand : ICommand
+		{
+			public event EventHandler CanExecuteChanged;
+
+			public bool CanExecute(object parameter)
+			{
+				return true;
+			}
+
+			public void Execute(object parameter)
+			{
+				Instance selected = parameter as Instance;
+
+				if (selected != null)
+				{
+					Clipboard.SetText(new JObject(selected.data).ToString());
+				}
 			}
 		}
 
