@@ -20,32 +20,12 @@ namespace editor_wpf.ViewModel
 {
 	public class MainViewModel : ViewModelBase
 	{
-		public class Property
-		{
-			public delegate void Update(string _entity, string _provider, JObject data);
-
-			Update _update;			
-			JProperty _prop;
-			string _entity, _provider;
-
-			public JProperty prop { get { return _prop; } }
-
-			public Property(Update update, JProperty prop, string entity, string provider)
-			{
-				_update = update;
-				_prop = prop;
-				_entity = entity;
-				_provider = provider;
-
-			}
-		}
-
 		public class Instance
 		{
 			public string entity { get; set; }
 			public string name { get; set;  }
 			public string provider { get; set; }
-			public IEnumerable<Property> data { get; set; }
+			public IEnumerable<JProperty> data { get; set; }
 		}
 
 		public class Entity
@@ -73,13 +53,16 @@ namespace editor_wpf.ViewModel
 			{
 				Entity entity = _entityIndex[src.entity];
 
-				Collection<Property> props = new Collection<Property>();
+				Collection<JProperty> props = new Collection<JProperty>();
 				foreach (JProperty prop in src.data)
 				{
-					props.Add(new Property((string entityName, string provider, JObject data) => {
-						_serv.SetInstance(provider, entityName, data);
-					}, prop, instance.name, instance.provider));
-				}
+					JProperty newProp = new JProperty(prop);
+					newProp.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e) {					
+						Console.WriteLine("changed");
+
+					};
+					props.Add(newProp);
+				};
 
 				entity.instances.Add(new Instance { entity = src.entity, provider = src.provider, name = src.name, data = props });
 			}), instance);

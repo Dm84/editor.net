@@ -12,30 +12,22 @@ using Newtonsoft.Json.Linq;
 
 namespace editor_wpf.ViewModel
 {
-	using Property = MainViewModel.Property;
-
 	class JTokenToControlConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType,
 			object parameter, CultureInfo culture)
 		{
-			Property prop = value as Property;	
+			JProperty prop = value as JProperty;	
 
 			if (prop != null)
 			{
-				prop.prop.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e)
-				{
-					Console.WriteLine("changed");
-
-				};
-
-				JToken token = prop.prop.Value;
+				JToken token = prop.Value;
 				switch (token.Type)
 				{
 					case JTokenType.Float: 
-						return new Widget.FloatWidget(prop.prop);
+						return new Widget.FloatWidget(prop);
 
-					default: return new Widget.TextWidget(prop.prop);
+					default: return new Widget.TextWidget(prop);
 				}
 			} else return null;			
 		}
