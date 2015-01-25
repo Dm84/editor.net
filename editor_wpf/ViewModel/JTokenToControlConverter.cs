@@ -36,9 +36,7 @@ namespace editor_wpf.ViewModel
 			object parameter, CultureInfo culture)
 		{
 			Console.WriteLine("ConvertBack");
-
-			Widget.IWidget w = value as Widget.IWidget;
-			return w != null ? new JValue(w.Value) : null;
+			return null;
 		}
 	}
 }
