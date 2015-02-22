@@ -32,19 +32,6 @@
 					<MenuItem Click="MenuItem_Click" x:Name="EntitiesAddItem" Header="Add.." HorizontalAlignment="Left" Width="145" RenderTransformOrigin="0.5,1"/>
 				</MenuItem>
 			</Menu>
-
-			<TreeView x:Name="treeView" Margin="0" RenderTransformOrigin="0.5,0.5" ItemsSource="{Binding entities}" Grid.Row="1" Grid.Column="1" ScrollViewer.VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-				<TreeView.ItemTemplate>
-					<HierarchicalDataTemplate ItemsSource="{Binding instances}">
-						<TextBlock Text="{Binding name}"/>
-						<HierarchicalDataTemplate.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding name}"/>
-							</DataTemplate>
-						</HierarchicalDataTemplate.ItemTemplate>
-					</HierarchicalDataTemplate>
-				</TreeView.ItemTemplate>
-			</TreeView>
 			<Grid Margin="0" Grid.Row="1" ClipToBounds="True" >
 				<Grid.RowDefinitions>
 					<RowDefinition/>
@@ -53,11 +40,11 @@
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition/>
 				</Grid.ColumnDefinitions>
-				<ListView ItemsSource="{Binding SelectedItem, Converter={StaticResource InstanceConverter}, ElementName=treeView, Mode=OneWay}" Margin="0,0,-424,-21" ClipToBounds="True">
+				<ListView ItemsSource="{Binding SelectedItem, Converter={StaticResource InstanceConverter}, ElementName=treeView, Mode=OneWay}" Margin="0,0,0,1" ClipToBounds="True" Grid.RowSpan="2">
 					<ListView.View>
 						<GridView>
 							<GridViewColumn Header="Параметр" Width="190" DisplayMemberBinding="{Binding Name}"/>
-							<GridViewColumn Header="Значение" Width="190">
+							<GridViewColumn Header="Значение" Width="220">
 								<GridViewColumn.CellTemplate>
 									<DataTemplate>
 										<ContentControl Content="{Binding Converter={StaticResource JTokenToControlConverter}, Mode=OneWay, ValidatesOnNotifyDataErrors=False}"/>
@@ -69,6 +56,41 @@
 					</ListView.View>
 				</ListView>
 				<Button Command="{Binding copyEntity, Mode=OneWay}" CommandParameter="{Binding SelectedItem, ElementName=treeView, Mode=OneWay}" Content="Скопировать" Margin="0" Grid.Row="1" VerticalAlignment="Top" ClipToBounds="True"/>
+			</Grid>
+			<Grid Grid.Row="1" Grid.Column="1">
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<TreeView x:Name="treeView" Margin="0" RenderTransformOrigin="0.5,0.5" ItemsSource="{Binding entities}" ScrollViewer.VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+					<TreeView.ItemTemplate>
+						<HierarchicalDataTemplate ItemsSource="{Binding instances}">
+							<TextBlock Text="{Binding name}"/>
+							<HierarchicalDataTemplate.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding name}"/>
+								</DataTemplate>
+							</HierarchicalDataTemplate.ItemTemplate>
+						</HierarchicalDataTemplate>
+					</TreeView.ItemTemplate>
+				</TreeView>
+				<StackPanel Grid.Row="1">
+					<Grid ScrollViewer.VerticalScrollBarVisibility="Disabled">
+						<Grid.RowDefinitions>
+							<RowDefinition/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition/>
+							<ColumnDefinition Width="Auto"/>
+						</Grid.ColumnDefinitions>
+						<TextBox TextWrapping="Wrap" Margin="0"/>
+						<Button Content="Выполнить" HorizontalContentAlignment="Center" VerticalContentAlignment="Stretch" Margin="0" Grid.Column="1"/>
+					</Grid>
+					<Button Content="Очистить"/>
+				</StackPanel>
 			</Grid>
 		</Grid>
 	</Grid>

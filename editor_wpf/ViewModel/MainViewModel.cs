@@ -25,6 +25,7 @@ namespace editor_wpf.ViewModel
 			public string entity { get; set; }
 			public string name { get; set;  }
 			public string provider { get; set; }
+
 			public IEnumerable<JProperty> data { get; set; }
 		}
 
@@ -36,6 +37,24 @@ namespace editor_wpf.ViewModel
 
 			public IEnumerable<JProperty> props { get; set; }
 			public ICollection<Instance> instances { get; set; }
+
+			private IDictionary<string, Instance> _map = new Dictionary<string, Instance>();
+
+			public void AddInstance(Instance instance) {
+				_map[instance.name] = instance;
+				instances.Add(instance);
+			}
+
+			public bool HasInstance(String name)
+			{
+				return _map.ContainsKey(name);
+			}
+
+			public Instance GetInstance(String name)
+			{
+				return _map[name];
+			}
+
 		}
 
 		delegate void TokenDelegate(JToken token);
@@ -57,14 +76,25 @@ namespace editor_wpf.ViewModel
 				foreach (JProperty prop in src.data)
 				{
 					JProperty newProp = new JProperty(prop);
-					newProp.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e) {					
-						Console.WriteLine("changed");
+					newProp.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e)
+					{
+						JObject data = new JObject(newProp);
+						data["name"] = src.name;
 
+						_serv.SetInstance(src.provider, src.entity, data);
 					};
 					props.Add(newProp);
 				};
 
-				entity.instances.Add(new Instance { entity = src.entity, provider = src.provider, name = src.name, data = props });
+				if (entity.HasInstance(src.name))
+				{
+					entity.GetInstance(src.name).data = props;
+				} 
+				else
+				{
+					entity.AddInstance(new Instance { entity = src.entity, provider = src.provider, name = src.name, data = props });
+				}
+
 			}), instance);
 		}
 
@@ -117,7 +147,7 @@ namespace editor_wpf.ViewModel
 		{
 			get
 			{
-				return new CopyCommand();
+				return new CopyEntityCommand();
 			}
 		}
 
@@ -146,7 +176,10 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
-		class CopyCommand : ICommand
+		/// <summary>
+		/// copy entity serialization to clipboard
+		/// </summary>
+		class CopyEntityCommand : ICommand
 		{
 			public event EventHandler CanExecuteChanged;
 

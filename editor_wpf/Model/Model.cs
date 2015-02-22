@@ -34,6 +34,7 @@ namespace editor_wpf.Model
 				string[] fullName = src["method"].ToString().Split('_');
 				provider = fullName.Length > 1 ? fullName[0] : "";
 				entity = fullName[fullName.Length - 1];
+
 				name = src["data"]["name"].ToString();
 				data = src["data"];
 			}
