@@ -25,9 +25,11 @@ namespace editor_wpf.ViewModel
 				switch (token.Type)
 				{
 					case JTokenType.Float: 
-						return new Widget.FloatWidget(prop);
+						return new Widget.FloatWidget(token);
+					case JTokenType.Array:
+						return new Widget.VectorWidget(token);
 
-					default: return new Widget.TextWidget(prop);
+					default: return new Widget.TextWidget(token);
 				}
 			} else return null;			
 		}

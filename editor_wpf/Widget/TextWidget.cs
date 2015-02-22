@@ -14,22 +14,22 @@ namespace editor_wpf.Widget
 {
 	public class TextWidget : TextBox
 	{
-		JProperty _prop;
-		string _val;
+		JToken _val;
+		string _text;
 
-		public TextWidget(JProperty prop)
+		public TextWidget(JToken val)
 		{
-			_prop = prop;
-			_val = prop.Value.Value<string>();
+			_val = val;
+			_text = val.Value<string>();
 
 			this.KeyUp += OnChange;
 			this.Width = 190;
-			this.Text = _val;
+			this.Text = _text;
 		}
 
 		public void OnChange(Object sender, KeyEventArgs e)
 		{
-			_prop.Value = this.Text;
+			_val = this.Text;
 		}
 	}
 }
