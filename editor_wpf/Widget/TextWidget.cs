@@ -8,37 +8,30 @@ using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Input;
 using System.ComponentModel;
+using System.Windows.Media;
 
 using Newtonsoft.Json.Linq;
 
 namespace editor_wpf.Widget
 {
-	public class TextWidget : TextBox, INotifyPropertyChanged
+	public class TextWidget : TextBox
 	{
-		JToken _val;
+		JProperty _val;
 		string _text;
 
-		public TextWidget(JToken val)
+		public TextWidget(JProperty val)
 		{
 			_val = val;
-			_text = val.Value<string>();
+			_text = val.Value.Value<string>();
 
 			this.KeyUp += OnChange;
 			this.Width = 190;
 			this.Text = _text;
 		}
 
-		public event PropertyChangedEventHandler PropertyChanged;
-
 		public void OnChange(Object sender, KeyEventArgs e)
 		{
-			_val = this.Text;
-
-			if (PropertyChanged != null)
-			{
-				PropertyChangedEventArgs args = new PropertyChangedEventArgs("Content");
-				PropertyChanged(this, args);
-			}
+			_val.Value = this.Text;
 		}
 	}
 }

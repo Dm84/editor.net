@@ -15,14 +15,15 @@ namespace editor_wpf.Widget
 {
 	class VectorWidget : StackPanel
 	{
-		private FloatWidget[] _vector;
-
-		public VectorWidget(JToken prop)
+		public VectorWidget(JProperty prop)
 		{	
 			this.Orientation = Orientation.Vertical;
-			foreach (JValue val in prop)
+
+			JArray array = prop.Value as JArray;
+
+			for (int i = 0; i < array.Count; ++i)
 			{
-				FloatWidget widget = new FloatWidget(val);
+				FloatWidget widget = new FloatWidget(new ElementSource(prop, i));
 				this.Children.Add(widget);
 			}
 		}

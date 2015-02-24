@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Collections.Specialized;
 
 using Newtonsoft.Json.Linq;
+using editor_wpf.Widget;
 
 namespace editor_wpf.ViewModel
 {
@@ -17,7 +18,7 @@ namespace editor_wpf.ViewModel
 		public object Convert(object value, Type targetType,
 			object parameter, CultureInfo culture)
 		{
-			JProperty prop = value as JProperty;	
+			JProperty prop = value as JProperty;
 
 			if (prop != null)
 			{
@@ -25,11 +26,11 @@ namespace editor_wpf.ViewModel
 				switch (token.Type)
 				{
 					case JTokenType.Float: 
-						return new Widget.FloatWidget(token);
+						return new Widget.FloatWidget(new SingleSource(prop));
 					case JTokenType.Array:
-						return new Widget.VectorWidget(token);
+						return new Widget.VectorWidget(prop);
 
-					default: return new Widget.TextWidget(token);
+					default: return new Widget.TextWidget(prop);
 				}
 			} else return null;			
 		}

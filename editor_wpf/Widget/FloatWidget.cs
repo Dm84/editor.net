@@ -11,11 +11,11 @@ using Newtonsoft.Json.Linq;
 
 namespace editor_wpf.Widget
 {
-	public class FloatWidget : StackPanel, IWidget
+	public class FloatWidget : StackPanel
 	{
 		public object Value { get { return _val; } }
 
-		JToken _prop;
+		FloatSource _prop;
 		double _val;
 
 		TextBox _textBox;
@@ -23,10 +23,10 @@ namespace editor_wpf.Widget
 
 		const string FORMAT = "N2";
 
-		public FloatWidget(JToken prop)
+		public FloatWidget(FloatSource prop)
 		{
 			_prop = prop;
-			_val = _prop.Value<double>();
+			_val = _prop.Value;
 
 			_textBox = new TextBox { Text = _val.ToString(FORMAT), Width = 50 };
 			_slider = new Slider { Width = 150 };			
@@ -52,7 +52,7 @@ namespace editor_wpf.Widget
 		public void SliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
 			_val = e.NewValue;
-			_prop = _val;
+			_prop.Value = _val;
 
 			_textBox.Text = _val.ToString(FORMAT);			
 		}

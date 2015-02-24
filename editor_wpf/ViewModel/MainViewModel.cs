@@ -20,13 +20,17 @@ namespace editor_wpf.ViewModel
 {
 	public class MainViewModel : ViewModelBase
 	{
-		public class Instance
+		public class Instance : Dictionary<string, JProperty>
 		{
 			public string entity { get; set; }
 			public string name { get; set;  }
 			public string provider { get; set; }
 
-			public IEnumerable<JProperty> data { get; set; }
+			public ICollection<JProperty> data { 
+				get {
+					return this.Values;
+				}
+			}
 		}
 
 		public class Entity
@@ -72,7 +76,27 @@ namespace editor_wpf.ViewModel
 			{
 				Entity entity = _entityIndex[src.entity];
 
-				Collection<JProperty> props = new Collection<JProperty>();
+				Instance obj;
+
+				if (entity.HasInstance(src.name))
+				{
+					obj = entity.GetInstance(src.name);
+
+					////update props
+					//foreach (JProperty prop in src.data)
+					//{
+					//	if (existent.ContainsKey(prop.Name) && existent[prop.Name].Value != prop.Value)
+					//	{
+					//		existent[prop.Name].Value = prop.Value; 
+					//	}
+					//}					
+				} 
+				else
+				{
+					obj = new Instance { entity = src.entity, name = src.name };
+					entity.AddInstance(obj);
+				}
+
 				foreach (JProperty prop in src.data)
 				{
 					JProperty newProp = new JProperty(prop);
@@ -81,19 +105,14 @@ namespace editor_wpf.ViewModel
 						JObject data = new JObject(newProp);
 						data["name"] = src.name;
 
-						_serv.SetInstance(src.provider, src.entity, data);
+						_serv.SetInstance(src.entity, data);
 					};
-					props.Add(newProp);
+					if (obj.ContainsKey(newProp.Name))
+						obj[newProp.Name] = newProp;
+					else
+						obj.Add(newProp.Name, newProp);
 				};
 
-				if (entity.HasInstance(src.name))
-				{
-					entity.GetInstance(src.name).data = props;
-				} 
-				else
-				{
-					entity.AddInstance(new Instance { entity = src.entity, provider = src.provider, name = src.name, data = props });
-				}
 
 			}), instance);
 		}
@@ -151,6 +170,22 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
+		public ICommand clearInstances
+		{
+			get
+			{
+				return new ClearInstancesCommand(_serv);
+			}
+		}
+
+		public ICommand runScript
+		{
+			get
+			{
+				return new RunScriptCommand(_serv);
+			}
+		}
+
 
 		class AddEntityCommand : ICommand
 		{
@@ -172,7 +207,7 @@ namespace editor_wpf.ViewModel
 			public void Execute(object parameter)
 			{
 				Entity selected = parameter as Entity;
-				_serv.SetInstance(selected.provider, selected.name, new JObject(selected.props));
+				_serv.SetInstance(selected.name, new JObject(selected.props));
 			}
 		}
 
@@ -197,6 +232,50 @@ namespace editor_wpf.ViewModel
 					Clipboard.SetText(new JObject(selected.data).ToString());
 				}
 			}
+		}
+
+		class ClearInstancesCommand : ICommand
+		{
+			private Service _serv;
+			public event EventHandler CanExecuteChanged;
+
+			public ClearInstancesCommand(Service serv)
+			{
+				_serv = serv;
+			}
+
+			public bool CanExecute(object parameter)
+			{
+				return true;
+			}
+
+			public void Execute(object parameter)
+			{
+				_serv.ClearAll();
+			}
+
+		}
+
+		class RunScriptCommand : ICommand
+		{
+			private Service _serv;
+			public event EventHandler CanExecuteChanged;
+
+			public RunScriptCommand(Service serv)
+			{
+				_serv = serv;
+			}
+
+			public bool CanExecute(object parameter)
+			{
+				return true;
+			}
+
+			public void Execute(object parameter)
+			{
+				_serv.RunScript(parameter.ToString());
+			}
+
 		}
 
 	}

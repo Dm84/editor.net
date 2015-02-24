@@ -26,17 +26,13 @@ namespace editor_wpf.Model
 		{
 			public string name;
 			public string entity;
-			public string provider;
 			public JToken data;
 
-			public Instance(JObject src)
+			public Instance(string entity, JToken data)
 			{
-				string[] fullName = src["method"].ToString().Split('_');
-				provider = fullName.Length > 1 ? fullName[0] : "";
-				entity = fullName[fullName.Length - 1];
-
-				name = src["data"]["name"].ToString();
-				data = src["data"];
+				this.entity = entity;
+				this.name = data["name"].Value<string>();
+				this.data = data;
 			}
 		}
 
@@ -77,8 +73,14 @@ namespace editor_wpf.Model
 			_ws.Open();
 		}
 
-		public void SetInstance(string provider, string entity, JObject data) {
-			_ws.CallSet(provider + "_" + entity, data);
+		public void SetInstance(string entity, JObject data) {
+
+			_ws.CallSet(entity, data);
+		}
+
+		public void ClearAll()
+		{
+			_ws.CallSet("clear_all", new JObject());
 		}
 
 		public void OnOpenConnection(Object sender, EventArgs e)
@@ -100,14 +102,38 @@ namespace editor_wpf.Model
 					_entityFeedback(entities);
 				}
 			});
+
+			_ws.CallGet("instances", new JObject(), (JToken ret) =>
+			{
+				JArray array = ret as JArray;
+				if (array != null)
+				{
+					foreach (JObject obj in array)
+					{
+						_instanceFeedback(new Instance(obj["entity"].Value<string>(), obj["data"]));
+					}
+					
+				}
+			});
+
 		}
 
 		public void OnSetMethod(Object sender, JObject obj)
 		{
-			_instanceFeedback(new Instance(obj));
+			if (obj["data"].HasValues)
+				_instanceFeedback(new Instance(obj["method"].Value<string>(), obj["data"]));
 		}
 
+		public void RunScript(string name)
+		{
+			var obj = new JObject();
+			obj.Add("filename", name);
+			_ws.CallGet("execute_file", obj, new WsService.RpcCallback((JToken token) => {
 
+				Console.WriteLine("executed: " + token.ToString());
+
+			}));
+		}
 
 	}
 }

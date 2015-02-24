@@ -87,7 +87,7 @@
     <Compile Include="ViewModel\SelectEntityViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Compile Include="Widget\FloatWidget.cs" />
-    <Compile Include="Widget\IWidget.cs" />
+    <Compile Include="Widget\WidgetSource.cs" />
     <Compile Include="Widget\TextWidget.cs" />
     <Compile Include="Widget\VectorWidget.cs" />
     <Page Include="MainWindow.xaml">

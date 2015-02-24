@@ -40,16 +40,15 @@
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition/>
 				</Grid.ColumnDefinitions>
-				<ListView ItemsSource="{Binding SelectedItem, Converter={StaticResource InstanceConverter}, ElementName=treeView, Mode=OneWay}" Margin="0,0,0,1" ClipToBounds="True" Grid.RowSpan="2">
+				<ListView x:Name="listView" ItemsSource="{Binding SelectedItem, Converter={StaticResource InstanceConverter}, ElementName=treeView, Mode=OneWay}" Margin="0,0,0,1" ClipToBounds="True" Grid.RowSpan="2">
 					<ListView.View>
 						<GridView>
-							<GridViewColumn Header="Параметр" Width="190" DisplayMemberBinding="{Binding Name}"/>
-							<GridViewColumn Header="Значение" Width="220">
+							<GridViewColumn Header="Параметр" DisplayMemberBinding="{Binding Name}"/>
+							<GridViewColumn Header="Значение">
 								<GridViewColumn.CellTemplate>
 									<DataTemplate>
 										<ContentControl Content="{Binding Converter={StaticResource JTokenToControlConverter}, Mode=OneWay, ValidatesOnNotifyDataErrors=False}"/>
 									</DataTemplate>
-
 								</GridViewColumn.CellTemplate>
 							</GridViewColumn>
 						</GridView>
@@ -86,10 +85,10 @@
 							<ColumnDefinition/>
 							<ColumnDefinition Width="Auto"/>
 						</Grid.ColumnDefinitions>
-						<TextBox TextWrapping="Wrap" Margin="0"/>
-						<Button Content="Выполнить" HorizontalContentAlignment="Center" VerticalContentAlignment="Stretch" Margin="0" Grid.Column="1"/>
+						<TextBox x:Name="textBox" TextWrapping="Wrap" Margin="0"/>
+						<Button Content="Выполнить" HorizontalContentAlignment="Center" VerticalContentAlignment="Stretch" Margin="0" Grid.Column="1" Command="{Binding runScript, Mode=OneWay}" CommandParameter="{Binding Text, ElementName=textBox}"/>
 					</Grid>
-					<Button Content="Очистить"/>
+					<Button Content="Очистить" Command="{Binding clearInstances, Mode=OneWay}"/>
 				</StackPanel>
 			</Grid>
 		</Grid>
