@@ -55,7 +55,9 @@ namespace editor_wpf.Widget
 			}
 			set
 			{
+				//JToken newVal = new JValue(_prop.Value);
 				_prop.Value[_index] = value;
+				_prop.Value = _prop.Value;
 			}
 		}
 	}

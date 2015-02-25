@@ -105,6 +105,11 @@ namespace editor_wpf.ViewModel
 						JObject data = new JObject(newProp);
 						data["name"] = src.name;
 
+						if (src.data["scene"] != null)
+						{
+							data["scene"] = src.data["scene"];
+						}
+
 						_serv.SetInstance(src.entity, data);
 					};
 					if (obj.ContainsKey(newProp.Name))

@@ -46,32 +46,41 @@ namespace editor_wpf.Widget
 
 			this._slider.ValueChanged += SliderChanged;
 			this._textBox.LostKeyboardFocus += FocusLost;
+			this._textBox.TextChanged += TextChanged;
+			this._textBox.PreviewTextInput += PreviewInput;
 			this._slider.dragCompleted += DragCompleted;
 		}
 
 		private void FocusLost(object sender, KeyboardFocusChangedEventArgs e)
-		{			
+		{
+			UpdateSlider();
+		}
+
+		void PreviewInput(object sender, TextCompositionEventArgs e)
+		{
+		}
+
+		void TextChanged(object sender, TextChangedEventArgs e)
+		{
 			try
 			{
 				_val = double.Parse(this._textBox.Text);
+				_prop.Value = _val;
 				Console.WriteLine("changed: " + _val.ToString());
+			} catch {
 
-				UpdateSlider();
-			} catch
-			{
-				this._textBox.Undo();
 			}
 
 		}
 
 		private void UpdateSlider()
 		{
-			double tresh = _val == 0.0 ? 1.0 : _val;
+			double tresh = _val == 0.0 ? 1.0 : Math.Abs(_val);
 
+			_isProgrammatic = true;
 			_slider.Value = _val;
 			_slider.Minimum = _val - tresh * 0.5;
-			_slider.Maximum = _val + tresh * 0.5;
-			
+			_slider.Maximum = _val + tresh * 0.5;			
 		}
 
 		public void DragCompleted(object sender, DragCompletedEventArgs e)
@@ -81,16 +90,13 @@ namespace editor_wpf.Widget
 
 		public void SliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
-			if (_val != e.NewValue)
-			{
-				Console.WriteLine("slider changed:" + e.NewValue.ToString());
-
-				_val = e.NewValue;
-				_prop.Value = _val;
-
-				_isProgrammatic = true;
-				_textBox.Text = _val.ToString();
+			if (_val != e.NewValue && !_isProgrammatic)
+			{				
+				_textBox.Text = e.NewValue.ToString();
+				Console.WriteLine("slider changed:" + e.NewValue.ToString());			
 			}
+
+			_isProgrammatic = false;
 		}
 	}
 }
