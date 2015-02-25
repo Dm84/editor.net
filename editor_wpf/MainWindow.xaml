@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:System="clr-namespace:System;assembly=mscorlib" x:Name="window" x:Class="editor_wpf.MainWindow"
         xmlns:vm="clr-namespace:editor_wpf.ViewModel"
-        Title="MainWindow" Height="351" Width="700" Closed="Window_Closed">
+        Title="MainWindow" Height="700" Width="700" Closed="Window_Closed">
 	<Window.Resources>
 		<vm:JTokenToControlConverter x:Key="JTokenToControlConverter"/>
 		<vm:InstanceConverter x:Key="InstanceConverter"/>

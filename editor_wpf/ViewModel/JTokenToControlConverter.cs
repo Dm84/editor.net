@@ -25,6 +25,8 @@ namespace editor_wpf.ViewModel
 				JToken token = prop.Value;
 				switch (token.Type)
 				{
+					case JTokenType.Integer:
+						return new Widget.FloatWidget(new SingleSource(prop));
 					case JTokenType.Float: 
 						return new Widget.FloatWidget(new SingleSource(prop));
 					case JTokenType.Array:
