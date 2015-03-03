@@ -14,14 +14,37 @@ namespace editor_wpf.Model
 	/// </summary>
 	public class Model
 	{
+		/// <summary>
+		/// обратная связь для передачи сущностей обработчику
+		/// </summary>
+		/// <param name="entities"></param>
 		public delegate void AddEntities(ICollection<Entity> entities);
+
+		/// <summary>
+		/// ... для объектов
+		/// </summary>
+		/// <param name="instance"></param>
 		public delegate void AddInstance(Instance instance);
 
+		/// <summary>
+		/// индекс для поиска сущностей по имени
+		/// </summary>
 		private IDictionary<string, Entity> _entityIndex = new Dictionary<string, Entity>();
+
+		/// <summary>
+		/// веб-сокет сервис
+		/// </summary>
 		private WsService _ws;
+
+		/// <summary>
+		/// функции обр. вызова регистрируются в момент создания модели
+		/// </summary>
 		private AddEntities _entityFeedback;
 		private AddInstance _instanceFeedback;
 
+		/// <summary>
+		/// объект сущности
+		/// </summary>
 		public class Instance
 		{
 			public string name;
@@ -83,6 +106,11 @@ namespace editor_wpf.Model
 			_ws.CallSet("clear_all", new JObject());
 		}
 
+		/// <summary>
+		/// запрашиваем доступные сущности и уже созданные объекты после открытия соединения
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		public void OnOpenConnection(Object sender, EventArgs e)
 		{
 			_ws.CallGet("entities", new JObject(), (JToken ret) =>
@@ -124,10 +152,10 @@ namespace editor_wpf.Model
 				_instanceFeedback(new Instance(obj["method"].Value<string>(), obj["data"]));
 		}
 
-		public void RunScript(string name)
+		public void RunScript(string filename)
 		{
 			var obj = new JObject();
-			obj.Add("filename", name);
+			obj.Add("filename", filename);
 			_ws.CallGet("execute_file", obj, new WsService.RpcCallback((JToken token) => {
 
 				Console.WriteLine("executed: " + token.ToString());

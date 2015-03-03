@@ -20,6 +20,9 @@ namespace editor_wpf.ViewModel
 {
 	public class MainViewModel : ViewModelBase
 	{
+		/// <summary>
+		/// объект с точки зрения представления
+		/// </summary>
 		public class Instance : Dictionary<string, JProperty>
 		{
 			public string entity { get; set; }
@@ -61,14 +64,10 @@ namespace editor_wpf.ViewModel
 
 		}
 
-		delegate void TokenDelegate(JToken token);
-		delegate void ObjDelegate(JObject obj);
-
 		public ObservableCollection<Entity> entities { get; set; }
 
 		IDictionary<string, Entity> _entityIndex = new Dictionary<string, Entity>();
 		Service _serv;
-				
 
 		public void InstanceFeedback(Service.Instance instance)
 		{
@@ -149,7 +148,6 @@ namespace editor_wpf.ViewModel
 		{
 			entities = new ObservableCollection<Entity>();
 			_serv = new Service(Feedback, InstanceFeedback);
-			//isWaiting = true;
 		}
 
 		private bool _isWaiting = false;
