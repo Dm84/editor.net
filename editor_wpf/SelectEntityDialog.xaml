@@ -4,7 +4,6 @@
         xmlns:ViewModel="clr-namespace:editor_wpf.ViewModel" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="editor_wpf.SelectEntityDialog"
         Title="Добавить объект" Closing="Window_Closing" ResizeMode="NoResize" SizeToContent="WidthAndHeight" Height="600" Width="600">
 	<Window.Resources>
-		<ViewModel:JTokenToStringConverter x:Key="JTokenToStringConverter"/>
 		<ViewModel:JTokenToControlConverter x:Key="JTokenToControlConverter"/>
 	</Window.Resources>
 

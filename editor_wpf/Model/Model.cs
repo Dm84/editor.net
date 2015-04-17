@@ -26,6 +26,8 @@ namespace editor_wpf.Model
 		/// <param name="instance"></param>
 		public delegate void AddInstance(Instance instance);
 
+		public delegate void SetScriptResult(string scriptResult);
+
 		/// <summary>
 		/// индекс для поиска сущностей по имени
 		/// </summary>
@@ -35,12 +37,6 @@ namespace editor_wpf.Model
 		/// веб-сокет сервис
 		/// </summary>
 		private WsService _ws;
-
-		/// <summary>
-		/// функции обр. вызова регистрируются в момент создания модели
-		/// </summary>
-		private AddEntities _entityFeedback;
-		private AddInstance _instanceFeedback;
 
 		/// <summary>
 		/// объект сущности
@@ -83,14 +79,28 @@ namespace editor_wpf.Model
 				else props = new LinkedList<JProperty>();
 			}
 		}
-		
 
-		public Model(AddEntities entityFeedback, AddInstance instanceFeedback)
+		public class Args 
 		{
-			_ws = new WsService();
-			_entityFeedback = entityFeedback;
-			_instanceFeedback = instanceFeedback;
+			public Args(AddEntities	entityFeedback, AddInstance	instanceFeedback, SetScriptResult setScriptResult)
+			{
+				this.entityFeedback = entityFeedback;
+				this.instanceFeedback = instanceFeedback;
+				this.setScriptResult = setScriptResult;
+			}
 
+			public AddEntities		entityFeedback;
+			public AddInstance		instanceFeedback;
+			public SetScriptResult	setScriptResult;
+		}
+
+		private Args _args;
+
+		public Model(Args args)
+		{
+			_args = args;
+
+			_ws = new WsService();
 			_ws.Opened += new EventHandler(OnOpenConnection);
 			_ws.SetEvent += new EventHandler<JObject>(OnSetMethod);
 			_ws.Open();
@@ -127,7 +137,7 @@ namespace editor_wpf.Model
 						entities.Add(entity);
 					}
 
-					_entityFeedback(entities);
+					_args.entityFeedback(entities);
 				}
 			});
 
@@ -138,7 +148,7 @@ namespace editor_wpf.Model
 				{
 					foreach (JObject obj in array)
 					{
-						_instanceFeedback(new Instance(obj["entity"].Value<string>(), obj["data"]));
+						_args.instanceFeedback(new Instance(obj["entity"].Value<string>(), obj["data"]));
 					}
 					
 				}
@@ -149,17 +159,31 @@ namespace editor_wpf.Model
 		public void OnSetMethod(Object sender, JObject obj)
 		{
 			if (obj["data"].HasValues)
-				_instanceFeedback(new Instance(obj["method"].Value<string>(), obj["data"]));
+				_args.instanceFeedback(new Instance(obj["method"].Value<string>(), obj["data"]));
+		}
+
+		public void InterpreterReset()
+		{
+			var obj = new JObject();
+			_ws.CallGet("interpreter_reset", obj, new WsService.RpcCallback((JToken token) =>
+			{
+
+			}));
 		}
 
 		public void RunScript(string filename)
 		{
 			var obj = new JObject();
 			obj.Add("filename", filename);
-			_ws.CallGet("execute_file", obj, new WsService.RpcCallback((JToken token) => {
+			_ws.CallGet("interpreter_execute_file", obj, new WsService.RpcCallback((JToken token) => {
 
-				Console.WriteLine("executed: " + token.ToString());
-
+				string result = "";
+				foreach (JToken log in token.AsJEnumerable())
+				{
+					result += log["result"].Value<string>() +"\n";	
+				}
+				_args.setScriptResult(result);
+				
 			}));
 		}
 

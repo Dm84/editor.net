@@ -82,7 +82,6 @@
     </Compile>
     <Compile Include="ViewModel\InstanceConverter.cs" />
     <Compile Include="ViewModel\JTokenToControlConverter.cs" />
-    <Compile Include="ViewModel\JTokenToStringConverter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\SelectEntityViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />

@@ -64,7 +64,7 @@ namespace editor_wpf.ViewModel
 
 		}
 
-		public ObservableCollection<Entity> entities { get; set; }
+		public ObservableCollection<Entity> entities { get; set; }		
 
 		IDictionary<string, Entity> _entityIndex = new Dictionary<string, Entity>();
 		Service _serv;
@@ -140,6 +140,11 @@ namespace editor_wpf.ViewModel
 				}
 			}), feed);
 		}
+
+		public void SetScriptResult(string result)
+		{
+			runResult += result;
+		}
 		
 		/// <summary>
 		/// Initializes a new instance of the MainViewModel class.
@@ -147,7 +152,7 @@ namespace editor_wpf.ViewModel
 		public MainViewModel()
 		{
 			entities = new ObservableCollection<Entity>();
-			_serv = new Service(Feedback, InstanceFeedback);
+			_serv = new Service(new Service.Args(Feedback, InstanceFeedback, SetScriptResult));
 		}
 
 		private bool _isWaiting = false;
@@ -189,6 +194,34 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
+		public ICommand interpreterReset
+		{
+			get
+			{
+				return new InterpreterReset(_serv);
+			}
+		}
+
+		class InterpreterReset : ICommand {
+
+			Service _serv;
+			public event EventHandler CanExecuteChanged;
+
+			public InterpreterReset(Service serv)
+			{
+				_serv = serv;
+			}
+
+			public bool CanExecute(object parameter)
+			{
+				return true;
+			}
+
+			public void Execute(object parameter)
+			{
+				_serv.InterpreterReset();
+			}
+		}
 
 		class AddEntityCommand : ICommand
 		{
@@ -259,9 +292,20 @@ namespace editor_wpf.ViewModel
 
 		}
 
+		private string _runResult;
+		public string runResult {
+			get { return _runResult;  }
+			set
+			{
+				_runResult = value;
+				RaisePropertyChanged("runResult");
+			} 
+		}
+
 		class RunScriptCommand : ICommand
 		{
 			private Service _serv;
+
 			public event EventHandler CanExecuteChanged;
 
 			public RunScriptCommand(Service serv)
@@ -276,7 +320,7 @@ namespace editor_wpf.ViewModel
 
 			public void Execute(object parameter)
 			{
-				_serv.RunScript(parameter.ToString());
+				_serv.RunScript(parameter.ToString());				
 			}
 
 		}
