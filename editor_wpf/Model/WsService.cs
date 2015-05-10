@@ -63,7 +63,8 @@ namespace editor_wpf.Model
 
 			SendObj(id, method, "get", args);
 
-			Task<JToken> task = new Task<JToken>(() => {
+			Task<JToken> task = new Task<JToken>(() => 
+			{
 				while (!_answers.ContainsKey(id))
 				{
 					Thread.Sleep(TimeSpan.FromMilliseconds(SLEEP_PERIOD_MS));
@@ -86,7 +87,8 @@ namespace editor_wpf.Model
 			Send(json.ToString());
 		}
 
-		public void CallGet(string method, JObject args, RpcCallback callback) {			
+		public void CallGet(string method, JObject args, RpcCallback callback) 
+		{			
 			_callbacks.Add(_queryId, callback);
 			SendObj(_queryId++, method, "get", args);
 		}

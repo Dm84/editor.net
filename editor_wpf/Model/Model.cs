@@ -68,15 +68,14 @@ namespace editor_wpf.Model
 				name = token["name"].ToString();
 				desc = token["desc"].ToString();
 				provider = token["provider"].ToString();
-				JToken def = token["params"];
+				JToken defaultParams = token["params"];
 				
-				JObject defObj = def as JObject;
-
-				if (defObj != null)
+				if (defaultParams is JObject)
 				{
-					props = defObj.Properties();
+					props = (defaultParams as JObject).Properties();
 				}
-				else props = new LinkedList<JProperty>();
+				else 
+					props = new LinkedList<JProperty>();
 			}
 		}
 
@@ -124,15 +123,15 @@ namespace editor_wpf.Model
 		public void OnOpenConnection(Object sender, EventArgs e)
 		{
 			_ws.CallGet("entities", new JObject(), (JToken ret) =>
-			{
-				JArray array = ret as JArray;
-				if (array != null)
+			{			
+				if (ret is JArray)
 				{
-					List<Entity> entities = new List<Entity>();
+					var array = ret as JArray;
+					var entities = new List<Entity>();
 
 					foreach (JToken token in array)
 					{
-						Entity entity = new Entity(token);
+						var entity = new Entity(token);
 						_entityIndex[entity.name] = entity;
 						entities.Add(entity);
 					}
@@ -142,15 +141,12 @@ namespace editor_wpf.Model
 			});
 
 			_ws.CallGet("instances", new JObject(), (JToken ret) =>
-			{
-				JArray array = ret as JArray;
-				if (array != null)
+			{				
+				if (ret is JArray)
 				{
+					var array = ret as JArray;
 					foreach (JObject obj in array)
-					{
 						_args.instanceFeedback(new Instance(obj["entity"].Value<string>(), obj["data"]));
-					}
-					
 				}
 			});
 
@@ -167,7 +163,7 @@ namespace editor_wpf.Model
 			var obj = new JObject();
 			_ws.CallGet("interpreter_reset", obj, new WsService.RpcCallback((JToken token) =>
 			{
-
+				throw new NotImplementedException();
 			}));
 		}
 

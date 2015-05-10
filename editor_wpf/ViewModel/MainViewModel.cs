@@ -242,8 +242,13 @@ namespace editor_wpf.ViewModel
 
 			public void Execute(object parameter)
 			{
-				Entity selected = parameter as Entity;
-				_serv.SetInstance(selected.name, new JObject(selected.props));
+				if (parameter is Entity)
+				{
+					var selected = parameter as Entity;
+					_serv.SetInstance(selected.name, new JObject(selected.props));
+				}
+				else
+					throw new InvalidCastException();
 			}
 		}
 
@@ -261,12 +266,13 @@ namespace editor_wpf.ViewModel
 
 			public void Execute(object parameter)
 			{
-				Instance selected = parameter as Instance;
-
-				if (selected != null)
+				if (parameter is Instance)
 				{
+					var selected = parameter as Instance;
 					Clipboard.SetText(new JObject(selected.data).ToString());
 				}
+				else
+					throw new InvalidCastException();
 			}
 		}
 
@@ -304,10 +310,6 @@ namespace editor_wpf.ViewModel
 
 		class RunScriptCommand : ICommand
 		{
-			private Service _serv;
-
-			public event EventHandler CanExecuteChanged;
-
 			public RunScriptCommand(Service serv)
 			{
 				_serv = serv;
@@ -322,6 +324,9 @@ namespace editor_wpf.ViewModel
 			{
 				_serv.RunScript(parameter.ToString());				
 			}
+
+			private Service _serv;
+			public event EventHandler CanExecuteChanged;
 
 		}
 
