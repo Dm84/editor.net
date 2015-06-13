@@ -14,7 +14,7 @@ using System.Windows;
 using GalaSoft.MvvmLight;
 using Newtonsoft.Json.Linq;
 
-using Service = editor_wpf.Model.Model;
+using Service = editor_wpf.Model.OperationModel;
 
 namespace editor_wpf.ViewModel
 {
@@ -71,7 +71,7 @@ namespace editor_wpf.ViewModel
 
 		public void InstanceFeedback(Service.Instance instance)
 		{
-			App.Current.Dispatcher.Invoke(new Service.AddInstance((Service.Instance src) =>
+			App.Current.Dispatcher.Invoke(new Service.SendInstance((Service.Instance src) =>
 			{
 				Entity entity = _entityIndex[src.entity];
 
@@ -123,7 +123,7 @@ namespace editor_wpf.ViewModel
 
 		public void Feedback(ICollection<Service.Entity> feed)
 		{
-			App.Current.Dispatcher.Invoke(new Service.AddEntities((ICollection<Service.Entity> collection) => {
+			App.Current.Dispatcher.Invoke(new Service.SendEntities((ICollection<Service.Entity> collection) => {
 				foreach (Service.Entity item in collection)
 				{
 					Entity entity = new Entity
@@ -163,6 +163,15 @@ namespace editor_wpf.ViewModel
 			set { _isWaiting = value; RaisePropertyChanged("isWaiting"); }
 		}
 
+		public ICommand shutdownHost
+		{
+			get
+			{
+				return new ShutdownHostCommand(_serv);
+			}
+		}
+
+
 		public ICommand addEntity
 		{
 			get {
@@ -198,49 +207,72 @@ namespace editor_wpf.ViewModel
 		{
 			get
 			{
-				return new InterpreterReset(_serv);
+				return new InterpreterResetCommand(_serv);
 			}
 		}
 
-		class InterpreterReset : ICommand {
-
-			Service _serv;
+		private abstract class Command : ICommand
+		{
 			public event EventHandler CanExecuteChanged;
-
-			public InterpreterReset(Service serv)
-			{
-				_serv = serv;
-			}
 
 			public bool CanExecute(object parameter)
 			{
 				return true;
 			}
 
-			public void Execute(object parameter)
+			public abstract void Execute(object parameter);
+		}
+
+		private abstract class ServCommand : Command
+		{
+			public ServCommand(Service serv)
+			{
+				_serv = serv;
+			}
+
+			override public abstract void Execute(object parameter);
+
+			protected Service _serv;
+		}
+
+		private class ShutdownHostCommand : ServCommand
+		{
+			public ShutdownHostCommand(Service serv)
+				: base(serv)
+			{
+			}
+
+			public override void Execute(object parameter)
+			{
+				_serv.Shutdown();
+			}
+		}
+
+		private class InterpreterResetCommand : ServCommand 
+		{			
+			public InterpreterResetCommand(Service serv) 
+				: base(serv)
+			{
+			}
+
+			override public void Execute(object parameter)
 			{
 				_serv.InterpreterReset();
 			}
 		}
 
-		class AddEntityCommand : ICommand
+		private class AddEntityCommand : ServCommand
 		{
 			Service _serv;
 			IEnumerable<Entity> _entities;
-			public event EventHandler CanExecuteChanged;
 
-			public AddEntityCommand(IEnumerable<Entity> entities, Service serv)
+			public AddEntityCommand(IEnumerable<Entity> entities, Service serv) 
+				: base(serv)
 			{
-				_entities = entities;
-				_serv = serv;
+				_entities = entities;				
 			}
 
-			public bool CanExecute(object parameter)
-			{
-				return true;
-			}
-
-			public void Execute(object parameter)
+			override public void Execute(object parameter)
 			{
 				if (parameter is Entity)
 				{
@@ -255,16 +287,9 @@ namespace editor_wpf.ViewModel
 		/// <summary>
 		/// copy entity serialization to clipboard
 		/// </summary>
-		class CopyEntityCommand : ICommand
+		private class CopyEntityCommand : Command
 		{
-			public event EventHandler CanExecuteChanged;
-
-			public bool CanExecute(object parameter)
-			{
-				return true;
-			}
-
-			public void Execute(object parameter)
+			override public void Execute(object parameter)
 			{
 				if (parameter is Instance)
 				{
@@ -276,22 +301,14 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
-		class ClearInstancesCommand : ICommand
+		private class ClearInstancesCommand : ServCommand
 		{
-			private Service _serv;
-			public event EventHandler CanExecuteChanged;
-
 			public ClearInstancesCommand(Service serv)
+				: base(serv)
 			{
-				_serv = serv;
 			}
 
-			public bool CanExecute(object parameter)
-			{
-				return true;
-			}
-
-			public void Execute(object parameter)
+			override public void Execute(object parameter)
 			{
 				_serv.ClearAll();
 			}
@@ -308,26 +325,17 @@ namespace editor_wpf.ViewModel
 			} 
 		}
 
-		class RunScriptCommand : ICommand
+		class RunScriptCommand : ServCommand
 		{
 			public RunScriptCommand(Service serv)
+				: base(serv)
 			{
-				_serv = serv;
 			}
 
-			public bool CanExecute(object parameter)
-			{
-				return true;
-			}
-
-			public void Execute(object parameter)
+			override public void Execute(object parameter)
 			{
 				_serv.RunScript(parameter.ToString());				
 			}
-
-			private Service _serv;
-			public event EventHandler CanExecuteChanged;
-
 		}
 
 	}

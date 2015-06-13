@@ -92,6 +92,7 @@
 					</Grid>
 					<Button Content="Очистить" Command="{Binding clearInstances, Mode=OneWay}"/>
 					<Button Content="Сбросить скрипты" Command="{Binding interpreterReset, Mode=OneWay}"/>
+					<Button Content="Остановить" Command="{Binding shutdownHost, Mode=OneWay}"/>
 				</StackPanel>
 			</Grid>
 		</Grid>

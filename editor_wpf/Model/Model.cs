@@ -12,21 +12,108 @@ namespace editor_wpf.Model
 	/// <summary>
 	/// incapsulates data exchange protocol
 	/// </summary>
-	public class Model
+	public class OperationModel
 	{
-		/// <summary>
-		/// обратная связь для передачи сущностей обработчику
-		/// </summary>
-		/// <param name="entities"></param>
-		public delegate void AddEntities(ICollection<Entity> entities);
+		public OperationModel(Args args)
+		{
+			_args = args;
+
+			_ws = new WsService();
+			_ws.Opened += new EventHandler(OnOpenConnection);
+			_ws.OnSetEvent += new EventHandler<JObject>(OnSetMethod);
+			_ws.Open();
+		}
+
+		public void SetInstance(string entity, JObject data)
+		{
+			_ws.CallSet(entity, data);
+		}
+
+		public void ClearAll()
+		{
+			_ws.CallSet("clear_all", new JObject());
+		}
 
 		/// <summary>
-		/// ... для объектов
+		/// запрашиваем доступные сущности и уже созданные объекты после открытия соединения
 		/// </summary>
-		/// <param name="instance"></param>
-		public delegate void AddInstance(Instance instance);
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		public void OnOpenConnection(Object sender, EventArgs e)
+		{
+			_ws.CallGet("entities", new JObject(), FillEntities);
+			_ws.CallGet("instances", new JObject(), FillInstances);
+		}
 
-		public delegate void SetScriptResult(string scriptResult);
+		public void OnSetMethod(Object sender, JObject obj)
+		{
+			if (obj["method"].Value<string>() == "instance" && obj["data"] != null && obj["data"].HasValues)
+			{
+				var entity = obj["data"]["entity"].Value<string>();
+				_args.instanceFeedback(new Instance(entity, obj["data"]));
+			}
+		}
+
+		public void Shutdown()
+		{
+			_ws.CallSet("quit", new JObject());
+		}
+
+		public void InterpreterReset()
+		{
+			var obj = new JObject();
+			_ws.CallGet("interpreter_reset", obj, new WsService.RpcCallback((JToken token) =>
+			{
+				throw new NotImplementedException();
+			}));
+		}
+
+		public void RunScript(string filename)
+		{
+			var obj = new JObject();
+			obj.Add("filename", filename);
+			_ws.CallGet("interpreter_execute_file", obj, new WsService.RpcCallback((JToken token) =>
+			{
+				string result = "";
+				foreach (JToken log in token.AsJEnumerable())
+				{
+					result += log["result"].Value<string>() + "\n";
+				}
+				_args.setScriptResult(result);
+
+			}));
+		}
+
+		private void FillEntities(JToken ret)
+		{
+			if (ret is JArray)
+			{
+				var array = ret as JArray;
+				var entities = new List<Entity>();
+
+				foreach (JToken token in array)
+				{
+					var entity = new Entity(token);
+					_entityIndex[entity.name] = entity;
+					entities.Add(entity);
+				}
+
+				_args.entityFeedback(entities);
+			}
+		}
+
+		private void FillInstances(JToken ret)
+		{
+			if (ret is JArray)
+			{
+				var array = ret as JArray;
+				foreach (JToken obj in array)
+					_args.instanceFeedback(new Instance(obj["entity"].Value<string>(), obj["data"]));
+			}
+		}
+
+
+		private Args _args;
 
 		/// <summary>
 		/// индекс для поиска сущностей по имени
@@ -37,6 +124,34 @@ namespace editor_wpf.Model
 		/// веб-сокет сервис
 		/// </summary>
 		private WsService _ws;
+
+		public class Args
+		{
+			public Args(SendEntities entityFeedback, SendInstance instanceFeedback, SetScriptResult setScriptResult)
+			{
+				this.entityFeedback = entityFeedback;
+				this.instanceFeedback = instanceFeedback;
+				this.setScriptResult = setScriptResult;
+			}
+
+			public SendEntities entityFeedback;
+			public SendInstance instanceFeedback;
+			public SetScriptResult setScriptResult;
+		}
+
+		/// <summary>
+		/// обратная связь для тех кто хочет получать сущности из этой модели
+		/// </summary>
+		/// <param name="entities"></param>
+		public delegate void SendEntities(ICollection<Entity> entities);
+
+		/// <summary>
+		/// ... для объектов
+		/// </summary>
+		/// <param name="instance"></param>
+		public delegate void SendInstance(Instance instance);
+
+		public delegate void SetScriptResult(string scriptResult);
 
 		/// <summary>
 		/// объект сущности
@@ -79,109 +194,6 @@ namespace editor_wpf.Model
 			}
 		}
 
-		public class Args 
-		{
-			public Args(AddEntities	entityFeedback, AddInstance	instanceFeedback, SetScriptResult setScriptResult)
-			{
-				this.entityFeedback = entityFeedback;
-				this.instanceFeedback = instanceFeedback;
-				this.setScriptResult = setScriptResult;
-			}
-
-			public AddEntities		entityFeedback;
-			public AddInstance		instanceFeedback;
-			public SetScriptResult	setScriptResult;
-		}
-
-		private Args _args;
-
-		public Model(Args args)
-		{
-			_args = args;
-
-			_ws = new WsService();
-			_ws.Opened += new EventHandler(OnOpenConnection);
-			_ws.SetEvent += new EventHandler<JObject>(OnSetMethod);
-			_ws.Open();
-		}
-
-		public void SetInstance(string entity, JObject data) {
-
-			_ws.CallSet(entity, data);
-		}
-
-		public void ClearAll()
-		{
-			_ws.CallSet("clear_all", new JObject());
-		}
-
-		/// <summary>
-		/// запрашиваем доступные сущности и уже созданные объекты после открытия соединения
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		public void OnOpenConnection(Object sender, EventArgs e)
-		{
-			_ws.CallGet("entities", new JObject(), (JToken ret) =>
-			{			
-				if (ret is JArray)
-				{
-					var array = ret as JArray;
-					var entities = new List<Entity>();
-
-					foreach (JToken token in array)
-					{
-						var entity = new Entity(token);
-						_entityIndex[entity.name] = entity;
-						entities.Add(entity);
-					}
-
-					_args.entityFeedback(entities);
-				}
-			});
-
-			_ws.CallGet("instances", new JObject(), (JToken ret) =>
-			{				
-				if (ret is JArray)
-				{
-					var array = ret as JArray;
-					foreach (JObject obj in array)
-						_args.instanceFeedback(new Instance(obj["entity"].Value<string>(), obj["data"]));
-				}
-			});
-
-		}
-
-		public void OnSetMethod(Object sender, JObject obj)
-		{
-			if (obj["data"].HasValues)
-				_args.instanceFeedback(new Instance(obj["method"].Value<string>(), obj["data"]));
-		}
-
-		public void InterpreterReset()
-		{
-			var obj = new JObject();
-			_ws.CallGet("interpreter_reset", obj, new WsService.RpcCallback((JToken token) =>
-			{
-				throw new NotImplementedException();
-			}));
-		}
-
-		public void RunScript(string filename)
-		{
-			var obj = new JObject();
-			obj.Add("filename", filename);
-			_ws.CallGet("interpreter_execute_file", obj, new WsService.RpcCallback((JToken token) => {
-
-				string result = "";
-				foreach (JToken log in token.AsJEnumerable())
-				{
-					result += log["result"].Value<string>() +"\n";	
-				}
-				_args.setScriptResult(result);
-				
-			}));
-		}
 
 	}
 }
