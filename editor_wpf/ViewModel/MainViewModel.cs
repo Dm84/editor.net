@@ -62,7 +62,7 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
-		private void ChangeHostProperty(Service.Instance src, JProperty newProp)
+		private void SyncChangedProperty(Service.Instance src, JProperty newProp)
 		{
 			JObject data = new JObject(newProp);
 			data["name"] = src.name;
@@ -76,7 +76,7 @@ namespace editor_wpf.ViewModel
 			_serv.SetInstance(src.entity, data);
 		}
 
-		private Instance GetOrCreateViewModelInstance(Service.Instance src, Entity entity)
+		private Instance GetOrCreateInstance(Service.Instance src, Entity entity)
 		{
 			Instance obj;
 
@@ -104,7 +104,7 @@ namespace editor_wpf.ViewModel
 		private void HandleInputInstances(Service.Instance src)
 		{
 			Entity entity = _entityIndex[src.entity];
-			Instance instance = GetOrCreateViewModelInstance(src, entity);
+			Instance instance = GetOrCreateInstance(src, entity);
 
 			foreach (JProperty prop in src.data)
 			{
@@ -114,7 +114,7 @@ namespace editor_wpf.ViewModel
 				//bind onchange handler
 				newProp.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) =>
 				{
-					ChangeHostProperty(src, newProp);
+					SyncChangedProperty(src, newProp);
 				};
 			}
 		}
