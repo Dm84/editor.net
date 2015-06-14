@@ -26,7 +26,7 @@ namespace editor_wpf.Model
 
 		public void SetInstance(string entity, JObject data)
 		{
-			_ws.CallSet(entity, data);
+			_ws.CallSet("instance", data);
 		}
 
 		public void ClearAll()

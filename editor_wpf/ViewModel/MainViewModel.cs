@@ -21,16 +21,119 @@ namespace editor_wpf.ViewModel
 	public class MainViewModel : ViewModelBase
 	{
 		/// <summary>
+		/// Initializes a new instance of the MainViewModel class.
+		/// </summary>
+		public MainViewModel()
+		{
+			entities = new ObservableCollection<Entity>();
+			_serv = new Service(new Service.Args(EntityFeedback, InstanceFeedback, SetScriptResult));
+		}
+
+		public void SetScriptResult(string result)
+		{
+			runResult += result;
+		}
+
+		public void InstanceFeedback(Service.Instance instance)
+		{
+			App.Current.Dispatcher.Invoke(new Service.SendInstance(HandleInputInstances), instance);
+		}
+
+		public void EntityFeedback(ICollection<Service.Entity> feed)
+		{
+			App.Current.Dispatcher.Invoke(new Service.SendEntities(HandleInputEntities), feed);
+		}
+
+		private void HandleInputEntities(ICollection<Service.Entity> collection)
+		{
+			foreach (Service.Entity item in collection)
+			{
+				Entity entity = new Entity
+				{
+					name = item.name,
+					desc = item.desc,
+					props = item.props,
+					provider = item.provider,
+					instances = new ObservableCollection<Instance>()
+				};
+
+				_entityIndex[entity.name] = entity;
+				entities.Add(entity);
+			}
+		}
+
+		private void ChangeHostProperty(Service.Instance src, JProperty newProp)
+		{
+			JObject data = new JObject(newProp);
+			data["name"] = src.name;
+			data["entity"] = src.entity;
+
+			if (src.data["scene"] != null)
+			{
+				data["scene"] = src.data["scene"];
+			}
+
+			_serv.SetInstance(src.entity, data);
+		}
+
+		private Instance GetOrCreateViewModelInstance(Service.Instance src, Entity entity)
+		{
+			Instance obj;
+
+			if (entity.HasInstance(src.name))
+			{
+				obj = entity.GetInstance(src.name);
+			}
+			else
+			{
+				obj = new Instance { entity = src.entity, name = src.name };
+				entity.AddInstance(obj);
+			}
+
+			return obj;
+		}
+
+		private void UpdateOrAddProperty(Instance instance, JProperty property)
+		{
+			if (instance.ContainsKey(property.Name))
+				instance[property.Name] = property;
+			else
+				instance.Add(property.Name, property);
+		}
+
+		private void HandleInputInstances(Service.Instance src)
+		{
+			Entity entity = _entityIndex[src.entity];
+			Instance instance = GetOrCreateViewModelInstance(src, entity);
+
+			foreach (JProperty prop in src.data)
+			{
+				JProperty newProp = new JProperty(prop);
+				UpdateOrAddProperty(instance, newProp);
+
+				//bind onchange handler
+				newProp.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) =>
+				{
+					ChangeHostProperty(src, newProp);
+				};
+			}
+		}
+
+
+
+		/// <summary>
 		/// объект с точки зрения представления
 		/// </summary>
 		public class Instance : Dictionary<string, JProperty>
 		{
 			public string entity { get; set; }
-			public string name { get; set;  }
+			public string name { get; set; }
 			public string provider { get; set; }
 
-			public ICollection<JProperty> data { 
-				get {
+			public ICollection<JProperty> data
+			{
+				get
+				{
 					return this.Values;
 				}
 			}
@@ -47,7 +150,8 @@ namespace editor_wpf.ViewModel
 
 			private IDictionary<string, Instance> _map = new Dictionary<string, Instance>();
 
-			public void AddInstance(Instance instance) {
+			public void AddInstance(Instance instance)
+			{
 				_map[instance.name] = instance;
 				instances.Add(instance);
 			}
@@ -64,96 +168,10 @@ namespace editor_wpf.ViewModel
 
 		}
 
-		public ObservableCollection<Entity> entities { get; set; }		
+		public ObservableCollection<Entity> entities { get; set; }
 
 		IDictionary<string, Entity> _entityIndex = new Dictionary<string, Entity>();
 		Service _serv;
-
-		public void InstanceFeedback(Service.Instance instance)
-		{
-			App.Current.Dispatcher.Invoke(new Service.SendInstance((Service.Instance src) =>
-			{
-				Entity entity = _entityIndex[src.entity];
-
-				Instance obj;
-
-				if (entity.HasInstance(src.name))
-				{
-					obj = entity.GetInstance(src.name);
-
-					////update props
-					//foreach (JProperty prop in src.data)
-					//{
-					//	if (existent.ContainsKey(prop.Name) && existent[prop.Name].Value != prop.Value)
-					//	{
-					//		existent[prop.Name].Value = prop.Value; 
-					//	}
-					//}					
-				} 
-				else
-				{
-					obj = new Instance { entity = src.entity, name = src.name };
-					entity.AddInstance(obj);
-				}
-
-				foreach (JProperty prop in src.data)
-				{
-					JProperty newProp = new JProperty(prop);
-					newProp.CollectionChanged += delegate(object sender, NotifyCollectionChangedEventArgs e)
-					{
-						JObject data = new JObject(newProp);
-						data["name"] = src.name;
-
-						if (src.data["scene"] != null)
-						{
-							data["scene"] = src.data["scene"];
-						}
-
-						_serv.SetInstance(src.entity, data);
-					};
-					if (obj.ContainsKey(newProp.Name))
-						obj[newProp.Name] = newProp;
-					else
-						obj.Add(newProp.Name, newProp);
-				};
-
-
-			}), instance);
-		}
-
-		public void Feedback(ICollection<Service.Entity> feed)
-		{
-			App.Current.Dispatcher.Invoke(new Service.SendEntities((ICollection<Service.Entity> collection) => {
-				foreach (Service.Entity item in collection)
-				{
-					Entity entity = new Entity
-					{
-						name = item.name,
-						desc = item.desc,
-						props = item.props,
-						provider = item.provider,
-						instances = new ObservableCollection<Instance>()
-					};
-
-					_entityIndex[entity.name] = entity;
-					entities.Add(entity);
-				}
-			}), feed);
-		}
-
-		public void SetScriptResult(string result)
-		{
-			runResult += result;
-		}
-		
-		/// <summary>
-		/// Initializes a new instance of the MainViewModel class.
-		/// </summary>
-		public MainViewModel()
-		{
-			entities = new ObservableCollection<Entity>();
-			_serv = new Service(new Service.Args(Feedback, InstanceFeedback, SetScriptResult));
-		}
 
 		private bool _isWaiting = false;
 
