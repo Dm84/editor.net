@@ -26,7 +26,12 @@ namespace editor_wpf.ViewModel
 		public MainViewModel()
 		{
 			entities = new ObservableCollection<Entity>();
-			_serv = new Service(new Service.Args(EntityFeedback, InstanceFeedback, SetScriptResult));
+			_serv = new Service(new Service.Args(EntityFeedback, InstanceFeedback, Reset, SetScriptResult));
+		}
+
+		public void Reset()
+		{
+			entities.Clear();			
 		}
 
 		public void SetScriptResult(string result)
@@ -193,7 +198,7 @@ namespace editor_wpf.ViewModel
 		public ICommand addEntity
 		{
 			get {
-				return new AddEntityCommand(entities, _serv);  
+				return new AddInstanceCommand(entities, _serv);  
 			}
 		}
 
@@ -279,12 +284,11 @@ namespace editor_wpf.ViewModel
 			}
 		}
 
-		private class AddEntityCommand : ServCommand
+		private class AddInstanceCommand : ServCommand
 		{
-			Service _serv;
 			IEnumerable<Entity> _entities;
 
-			public AddEntityCommand(IEnumerable<Entity> entities, Service serv) 
+			public AddInstanceCommand(IEnumerable<Entity> entities, Service serv) 
 				: base(serv)
 			{
 				_entities = entities;				
@@ -334,6 +338,7 @@ namespace editor_wpf.ViewModel
 		}
 
 		private string _runResult;
+
 		public string runResult {
 			get { return _runResult;  }
 			set
@@ -343,7 +348,7 @@ namespace editor_wpf.ViewModel
 			} 
 		}
 
-		class RunScriptCommand : ServCommand
+		private class RunScriptCommand : ServCommand
 		{
 			public RunScriptCommand(Service serv)
 				: base(serv)
@@ -353,6 +358,26 @@ namespace editor_wpf.ViewModel
 			override public void Execute(object parameter)
 			{
 				_serv.RunScript(parameter.ToString());				
+			}
+		}
+
+		private class ReconnectCommand: ServCommand
+		{
+			public ReconnectCommand(Service serv)
+				: base(serv)
+			{ }
+
+			public override void Execute(object parameter)
+			{
+				_serv.Reconnect();
+			}
+		}
+
+		public ICommand reconnect
+		{
+			get
+			{
+				return new ReconnectCommand(_serv);
 			}
 		}
 

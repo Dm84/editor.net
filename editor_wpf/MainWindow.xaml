@@ -56,7 +56,7 @@
 					</ListView.View>
 				</ListView>
 				<Button Command="{Binding copyEntity, Mode=OneWay}" CommandParameter="{Binding SelectedItem, ElementName=treeView, Mode=OneWay}" Content="Скопировать" Margin="0" Grid.Row="1" VerticalAlignment="Top" ClipToBounds="True"/>
-				<TextBlock TextWrapping="Wrap" Text="{Binding runResult}" Grid.Row="2" Height="200"/>
+				<TextBlock TextWrapping="Wrap" Text="{Binding runResult}" Grid.Row="2" Height="200" VerticalAlignment="Top" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
 			</Grid>
 			<Grid Grid.Row="1" Grid.Column="1">
 				<Grid.RowDefinitions>
@@ -93,6 +93,7 @@
 					<Button Content="Очистить" Command="{Binding clearInstances, Mode=OneWay}"/>
 					<Button Content="Сбросить скрипты" Command="{Binding interpreterReset, Mode=OneWay}"/>
 					<Button Content="Остановить" Command="{Binding shutdownHost, Mode=OneWay}"/>
+					<Button Content="Переподключиться" Command="{Binding reconnect, Mode=OneWay}"/>
 				</StackPanel>
 			</Grid>
 		</Grid>

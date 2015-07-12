@@ -26,6 +26,7 @@ namespace editor_wpf.Model
 
 		public void SetInstance(string entity, JObject data)
 		{
+			data["entity"] = entity;
 			_ws.CallSet("instance", data);
 		}
 
@@ -43,6 +44,12 @@ namespace editor_wpf.Model
 		{
 			_ws.CallGet("entities", new JObject(), FillEntities);
 			_ws.CallGet("instances", new JObject(), FillInstances);
+		}
+
+		public void Reconnect()
+		{
+			this._args.resetCallback();
+			_ws.Reconnect();
 		}
 
 		public void OnSetMethod(Object sender, JObject obj)
@@ -63,8 +70,7 @@ namespace editor_wpf.Model
 		{
 			var obj = new JObject();
 			_ws.CallGet("interpreter_reset", obj, new WsService.RpcCallback((JToken token) =>
-			{
-				throw new NotImplementedException();
+			{				
 			}));
 		}
 
@@ -127,15 +133,17 @@ namespace editor_wpf.Model
 
 		public class Args
 		{
-			public Args(SendEntities entityFeedback, SendInstance instanceFeedback, SetScriptResult setScriptResult)
+			public Args(SendEntities entityFeedback, SendInstance instanceFeedback, ResetCallback resetCallback, SetScriptResult setScriptResult)
 			{
 				this.entityFeedback = entityFeedback;
 				this.instanceFeedback = instanceFeedback;
+				this.resetCallback = resetCallback;
 				this.setScriptResult = setScriptResult;
 			}
 
 			public SendEntities entityFeedback;
 			public SendInstance instanceFeedback;
+			public ResetCallback resetCallback;
 			public SetScriptResult setScriptResult;
 		}
 
@@ -152,6 +160,7 @@ namespace editor_wpf.Model
 		public delegate void SendInstance(Instance instance);
 
 		public delegate void SetScriptResult(string scriptResult);
+		public delegate void ResetCallback();
 
 		/// <summary>
 		/// объект сущности
@@ -181,8 +190,8 @@ namespace editor_wpf.Model
 			public Entity(JToken token)
 			{
 				name = token["name"].ToString();
-				desc = token["desc"].ToString();
-				provider = token["provider"].ToString();
+				desc = token["desc"] != null ? token["desc"].ToString() : "";
+				provider = token["provider"] != null ? token["provider"].ToString() : "";
 				JToken defaultParams = token["params"];
 				
 				if (defaultParams is JObject)

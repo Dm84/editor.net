@@ -32,6 +32,11 @@ namespace editor_wpf.Model
 			this.MessageReceived += new EventHandler<MessageReceivedEventArgs>(OnMessage);
 		}
 
+		public void Reconnect()
+		{
+			base.Open();
+		}
+
 		private void HandleRequestAnswer(int answerId, JToken data)
 		{
 			if (_callbacks.ContainsKey(answerId))
